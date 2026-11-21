@@ -1,3 +1,11 @@
+/*
+ * salao.c
+ * Programa principal do sistema do Salão de Beleza Jeito de Mulher.
+ *
+ * Aqui ficam apenas a função main e os menus. As funções de cada área
+ * (produtos, serviços, profissionais, clientes e agendamento) estão
+ * em arquivos separados, incluídos logo abaixo.
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -9,42 +17,45 @@
 #include "util.h"
 #include "structs.h"
 
+int main() {
 
-int main(){
-
+    // Tamanho máximo de cada lista (clientes, produtos, serviços e profissionais)
     int quantidade = 20;
-    int escolha_fun_cli;
-    int escolha_opcao_menu;
-    int opcao_executar;
 
+    int escolha_fun_cli;      // 1 = funcionário, 2 = cliente
+    int escolha_opcao_menu;   // opção digitada no menu
+    int opcao_executar;       // opção que o switch vai executar (mesma numeração para os dois menus)
+
+    // Listas principais do sistema
     struct cliente cliente[quantidade];
     struct produto produto[quantidade];
     struct servico servico[quantidade];
     struct profissional profissional[quantidade];
     struct agendamento agendamento[10];
 
-
     // ================= CARREGAR PRODUTOS =================
+    // Lê os produtos do arquivo produtos.txt.
+    // Se o arquivo não existir ou estiver vazio, usa a lista padrão e já a salva.
 
     int quantidade_de_produto = carregar_produtos(produto, quantidade);
 
-    if (quantidade_de_produto == 0){
+    if (quantidade_de_produto == 0) {
         quantidade_de_produto = lista_de_produtos(produto, quantidade);
         salvar_produtos(produto, quantidade_de_produto);
     }
 
-
     // ================= CARREGAR SERVIÇOS =================
+    // Mesma ideia dos produtos, mas com o arquivo servicos.txt.
 
     int quantidade_de_servico = carregar_servicos(servico, quantidade);
 
-    if (quantidade_de_servico == 0){
+    if (quantidade_de_servico == 0) {
         quantidade_de_servico = lista_de_servicos_oferecidos(servico, quantidade);
         salvar_servicos(servico, quantidade_de_servico);
     }
 
-
     // ================= CARREGAR PROFISSIONAIS =================
+    // Cria os 10 profissionais de exemplo (com ID, telefone e serviços).
 
     int quantidade_de_profissionais = profissionais_cadastrados(
         profissional,
@@ -54,8 +65,8 @@ int main(){
         agendamento
     );
 
-
     // ================= MENU INICIAL =================
+    // A pessoa escolhe se vai usar o sistema como funcionário ou como cliente.
 
     printf("\n============================ BEM-VINDO ============================\n");
     printf("\n1 - FUNCIONÁRIO");
@@ -63,26 +74,26 @@ int main(){
 
     escolha_fun_cli = pedir_numero("\n-> ", 1, 2);
 
-
     // ================= VERIFICAR ID =================
+    // O funcionário precisa informar um ID cadastrado. Sem ele, o programa termina.
 
-    if (escolha_fun_cli == 1){
+    if (escolha_fun_cli == 1) {
 
-        if (verificar_id(profissional, quantidade_de_profissionais)){
+        if (verificar_id(profissional, quantidade_de_profissionais)) {
             printf("\nAcesso permitido!\n");
         }
-        else{
+        else {
             printf("\nAcesso negado!\n");
             return 0;
         }
     }
 
-
     // ================= MENUS =================
+    // Repete o menu até a pessoa escolher a opção 0 (sair).
 
-    do{
+    do {
 
-        if (escolha_fun_cli == 1){
+        if (escolha_fun_cli == 1) {
 
             // ================= MENU FUNCIONÁRIO =================
 
@@ -104,10 +115,11 @@ int main(){
                 "\nESCOLHA A OPERAÇÃO: ", 0, 11
             );
 
+            // No menu do funcionário, a opção digitada é a própria opção do switch
             opcao_executar = escolha_opcao_menu;
         }
 
-        else if (escolha_fun_cli == 2){
+        else if (escolha_fun_cli == 2) {
 
             // ================= MENU CLIENTE =================
 
@@ -123,24 +135,23 @@ int main(){
                 "\nESCOLHA A OPERAÇÃO: ", 0, 5
             );
 
-            // Converte a opção do cliente para o switch
-            if (escolha_opcao_menu == 0){
+            // Converte a opção do cliente para a numeração do switch.
+            // Ex.: cliente 1 (ver produtos) vira 3, que é o case de produtos.
+            if (escolha_opcao_menu == 0) {
                 opcao_executar = 0;
             }
-            else{
+            else {
                 opcao_executar = escolha_opcao_menu + 2;
             }
         }
 
-
         // ================= EXECUTAR OPERAÇÃO =================
 
-        switch(opcao_executar){
+        switch (opcao_executar) {
 
             case 0:
                 printf("\nSaindo do sistema...\n");
                 break;
-
 
             // ================= CADASTRAR CLIENTE =================
 
@@ -148,8 +159,8 @@ int main(){
                 cadastrar_cliente(cliente, quantidade);
                 break;
 
-
             // ================= CADASTRAR PROFISSIONAL =================
+            // A função devolve o novo total de profissionais.
 
             case 2:
                 quantidade_de_profissionais = cadastrar_profissional(
@@ -160,20 +171,17 @@ int main(){
                 );
                 break;
 
-
             // ================= MOSTRAR PRODUTOS =================
 
             case 3:
                 mostrar_produtos(produto, quantidade_de_produto);
                 break;
 
-
             // ================= MOSTRAR SERVIÇOS =================
 
             case 4:
                 mostrar_servicos(servico, quantidade_de_servico);
                 break;
-
 
             // ================= MOSTRAR PROFISSIONAIS =================
 
@@ -184,13 +192,11 @@ int main(){
                 );
                 break;
 
-
             // ================= HORÁRIOS DISPONÍVEIS =================
 
             case 6:
                 horarios_disponiveis(agendamento);
                 break;
-
 
             // ================= AGENDAR SERVIÇO =================
 
@@ -205,8 +211,9 @@ int main(){
                 );
                 break;
 
-
             // ================= CADASTRAR PRODUTO =================
+            // Passa o endereço do contador (&) para a função poder aumentá-lo.
+            // Depois salva no arquivo e mostra a lista atualizada.
 
             case 8:
                 cadastrar_produto(
@@ -220,7 +227,6 @@ int main(){
                 mostrar_produtos(produto, quantidade_de_produto);
                 break;
 
-
             // ================= REMOVER PRODUTO =================
 
             case 9:
@@ -228,7 +234,6 @@ int main(){
 
                 salvar_produtos(produto, quantidade_de_produto);
                 break;
-
 
             // ================= CADASTRAR SERVIÇO =================
 
@@ -244,7 +249,6 @@ int main(){
                 mostrar_servicos(servico, quantidade_de_servico);
                 break;
 
-
             // ================= REMOVER SERVIÇO =================
 
             case 11:
@@ -252,7 +256,6 @@ int main(){
 
                 salvar_servicos(servico, quantidade_de_servico);
                 break;
-
 
             default:
                 printf("\nOpção inválida!\n");

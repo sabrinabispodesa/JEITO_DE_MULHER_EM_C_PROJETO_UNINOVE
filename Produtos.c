@@ -1,11 +1,18 @@
+/*
+ * Produtos.c
+ * Tudo sobre produtos: lista padrão, mostrar, cadastrar, remover
+ * e salvar/carregar no arquivo produtos.txt.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include "cadastrar_produtos.h"
 #include "util.h"
 #include "structs.h"
 
-
-int lista_de_produtos(struct produto prod[], int quantidade_de_produto){
+// Lista padrão de produtos, usada quando o arquivo produtos.txt ainda não existe.
+// Copia até "quantidade_de_produto" produtos para a lista e devolve quantos copiou.
+int lista_de_produtos(struct produto prod[], int quantidade_de_produto) {
     // {nome, preço, estoque}  -> ajuste o estoque de cada produto como quiser
     struct produto pro[] = {
         {"Shampoo Revitalizante 300ml",   45.90, 10},
@@ -16,35 +23,42 @@ int lista_de_produtos(struct produto prod[], int quantidade_de_produto){
         {"Óleo Reparador Argan 60ml",     54.00, 10}
     };
 
+    // Calcula quantos produtos existem na lista padrão
     int quantidade = sizeof(pro) / sizeof(pro[0]);
-    if (quantidade_de_produto > quantidade){
-       quantidade_de_produto =  quantidade;
+
+    if (quantidade_de_produto > quantidade) {
+        quantidade_de_produto = quantidade;
     }
 
-    for (int i = 0; i < quantidade_de_produto; i++){
+    for (int i = 0; i < quantidade_de_produto; i++) {
         prod[i] = pro[i];
     }
+
     return quantidade_de_produto;
-
 }
 
-void mostrar_produtos(struct produto prod[], int quantidade_de_produto){
+// Mostra nome, preço e estoque de cada produto
+void mostrar_produtos(struct produto prod[], int quantidade_de_produto) {
     printf("\n============================ LISTA DE PRODUTOS ============================\n");
-    
-    for(int i = 0; i < quantidade_de_produto; i++){
-    printf("Produto %d - %s\n", i + 1, prod[i].nome);
-    printf("Preço: R$%.2f\n", prod[i].preco);
-    printf("Quantidade disponível no estoque: %d\n", prod[i].estoque);
-    printf("\n");
-}
+
+    for (int i = 0; i < quantidade_de_produto; i++) {
+        printf("Produto %d - %s\n", i + 1, prod[i].nome);
+        printf("Preço: R$%.2f\n", prod[i].preco);
+        printf("Quantidade disponível no estoque: %d\n", prod[i].estoque);
+        printf("\n");
+    }
 }
 
-void cadastrar_produto(struct produto p[], int *total, int capacidade){
+// Cadastra novos produtos no final da lista.
+// "total" é um ponteiro: assim a função consegue aumentar o contador da main.
+// "capacidade" é o tamanho máximo da lista.
+void cadastrar_produto(struct produto p[], int *total, int capacidade) {
     printf("\n============================ CADASTRAR PRODUTO ============================\n");
 
+    // Quantos produtos ainda cabem na lista
     int vagas = capacidade - *total;
 
-    if (vagas <= 0){
+    if (vagas <= 0) {
         printf("\nNão há espaço para novos produtos!\n");
         return;
     }
@@ -53,7 +67,7 @@ void cadastrar_produto(struct produto p[], int *total, int capacidade){
     int quantidade_a_cadastrar = pedir_numero("\nQuantos produtos deseja cadastrar? ", 1, vagas);
     limpar_buffer();   /* tira o Enter que sobrou, para o fgets do nome funcionar */
 
-    for(int i = 0; i < quantidade_a_cadastrar; i++){
+    for (int i = 0; i < quantidade_a_cadastrar; i++) {
         int pos = *total;   /* próxima posição livre */
 
         printf("\nDigite o nome do produto %d: ", i + 1);
@@ -64,12 +78,13 @@ void cadastrar_produto(struct produto p[], int *total, int capacidade){
         scanf("%f", &p[pos].preco);
         limpar_buffer();
 
-        do{
+        // O estoque precisa ser maior que 0; repete a pergunta até ser válido
+        do {
             printf("\nDigite a quantidade de %s disponível no estoque: ", p[pos].nome);
             scanf("%d", &p[pos].estoque);
             limpar_buffer();
 
-            if (p[pos].estoque <= 0){
+            if (p[pos].estoque <= 0) {
                 printf("\nQuantidade inválida!\n");
             }
         } while (p[pos].estoque <= 0);
@@ -78,52 +93,65 @@ void cadastrar_produto(struct produto p[], int *total, int capacidade){
     }
 }
 
-void imprimir_produtos(struct produto p[], int quantidade_de_produto){
+// Mostra os produtos em uma linha cada
+void imprimir_produtos(struct produto p[], int quantidade_de_produto) {
     printf("\n============================ PRODUTOS CADASTRADOS ============================\n");
-    for (int j = 0; j < quantidade_de_produto; j++){
+
+    for (int j = 0; j < quantidade_de_produto; j++) {
         printf("\n%d - %s", j + 1, p[j].nome);
         printf(" | R$ %.2f", p[j].preco);
         printf(" | Estoque: %d", p[j].estoque);
     }
 }
 
-void salvar_produtos (struct produto p[], int total){
+// Grava os produtos no arquivo, um por linha, no formato: nome;preço;estoque
+// O modo "w" apaga o arquivo e escreve tudo de novo.
+void salvar_produtos(struct produto p[], int total) {
     FILE *arq = fopen(ARQUIVO_PRODUTOS, "w");
-    if(arq == NULL){
+
+    if (arq == NULL) {
         printf("\nErro ao salvar os produtos!\n");
         return;
     }
 
-    for (int i = 0; i < total; i++){
+    for (int i = 0; i < total; i++) {
         fprintf(arq, "%s;%.2f;%d\n", p[i].nome, p[i].preco, p[i].estoque);
     }
+
     fclose(arq);
 }
 
-int carregar_produtos(struct produto p[], int quantidade_de_produto){
+// Lê os produtos do arquivo e devolve quantos foram lidos (0 se o arquivo não existir).
+// O espaço antes do % ignora o Enter que sobra entre as linhas.
+int carregar_produtos(struct produto p[], int quantidade_de_produto) {
     FILE *arq = fopen(ARQUIVO_PRODUTOS, "r");
-    if(arq == NULL){
+
+    if (arq == NULL) {
         return 0;
     }
 
     int total = 0;
-    while (total < quantidade_de_produto && fscanf(arq, " %39[^;];%f;%d", p[total].nome, &p[total].preco, &p[total].estoque) == 3){
+
+    while (total < quantidade_de_produto &&
+           fscanf(arq, " %39[^;];%f;%d", p[total].nome, &p[total].preco, &p[total].estoque) == 3) {
         total++;
     }
+
     fclose(arq);
     return total;
 }
 
-void remover_produtos(struct produto p[], int *total){
-     printf("\n============================ REMOVER PRODUTO ============================\n");
+// Remove um produto: mostra a lista, pergunta qual remover e "puxa" os seguintes para trás
+void remover_produtos(struct produto p[], int *total) {
+    printf("\n============================ REMOVER PRODUTO ============================\n");
 
-    if (*total == 0){
+    if (*total == 0) {
         printf("\nNão há produtos para remover!\n");
         return;
     }
 
     /* mostra os produtos com o número de cada um */
-    for (int i = 0; i < *total; i++){
+    for (int i = 0; i < *total; i++) {
         printf("\n%d - %s | R$%.2f | Estoque: %d", i + 1, p[i].nome, p[i].preco, p[i].estoque);
     }
     printf("\n");
@@ -131,7 +159,7 @@ void remover_produtos(struct produto p[], int *total){
     int escolha = pedir_numero("\nQual produto deseja remover? (0 - CANCELAR) ", 0, *total);
     limpar_buffer();
 
-    if (escolha == 0){
+    if (escolha == 0) {
         printf("\nOperação cancelada.\n");
         return;
     }
@@ -139,7 +167,7 @@ void remover_produtos(struct produto p[], int *total){
     int pos = escolha - 1;   /* posição no array (começa em 0) */
 
     /* "puxa" cada produto seguinte uma posição para trás, cobrindo o removido */
-    for (int i = pos; i < *total - 1; i++){
+    for (int i = pos; i < *total - 1; i++) {
         p[i] = p[i + 1];
     }
 

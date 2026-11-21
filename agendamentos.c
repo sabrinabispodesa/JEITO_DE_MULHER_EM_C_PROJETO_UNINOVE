@@ -1,3 +1,9 @@
+/*
+ * agendamentos.c
+ * Agendamento de serviços: mostra os horários, deixa o cliente escolher
+ * produtos e faz o agendamento completo com resumo e valor total.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include "agendamento.h"
@@ -5,42 +11,51 @@
 #include "cadastrar_funcionario.h"
 #include "util.h"
 
-
-void horarios_disponiveis(struct agendamento *a){
+// Preenche e mostra os dias da semana (segunda a sexta) e os 7 horários de cada dia.
+void horarios_disponiveis(struct agendamento *a) {
     printf("\n============================ HORÁRIOS DISPONÍVEIS ============================\n");
 
     const char *dias_da_semana[] = {"Segunda - feira", "Terça - feira", "Quarta - feira", "Quinta - feira", "Sexta - feira"};
     const char *horarios[] = {"09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"};
 
-    for (int i = 0; i < 5; i ++){
+    // Copia os textos para a struct (strncpy evita ultrapassar o tamanho do campo)
+    for (int i = 0; i < 5; i++) {
         strncpy(a->dia_da_semana[i], dias_da_semana[i], sizeof(a->dia_da_semana[i]) - 1);
         a->dia_da_semana[i][sizeof(a->dia_da_semana[i]) - 1] = '\0';
-        for (int l = 0; l < 7; l++){
-        strncpy(a->horario[l], horarios[l], sizeof(a->horario[l]) - 1);
-        a->horario[l][sizeof(a->horario[l]) - 1] = '\0';
+
+        for (int l = 0; l < 7; l++) {
+            strncpy(a->horario[l], horarios[l], sizeof(a->horario[l]) - 1);
+            a->horario[l][sizeof(a->horario[l]) - 1] = '\0';
         }
     }
-    for (int k = 0; k < 5; k++){
+
+    // Mostra cada dia com a lista de horários
+    for (int k = 0; k < 5; k++) {
         printf("\n\nDia: %s", a->dia_da_semana[k]);
-        for(int j = 0; j < 7; j++){
+
+        for (int j = 0; j < 7; j++) {
             printf("\nHorário %d: %s", j + 1, a->horario[j]);
         }
     }
-   }
+}
 
-float escolher_produtos(struct produto prod[], int quantidade_de_produto, struct agendar_horario_fazer_compra *compra){
+// Pergunta UMA vez se o cliente quer produtos, deixa escolher
+// e devolve o valor total dos produtos.
+// O estoque é descontado conforme os produtos são escolhidos.
+float escolher_produtos(struct produto prod[], int quantidade_de_produto, struct agendar_horario_fazer_compra *compra) {
     int sim_nao2;
     int escolher_produto;
     int quantidade_produto;
     float total_produtos = 0;
 
-    compra->total_produtos = 0;
+    compra->total_produtos = 0;   // o carrinho começa vazio
 
     sim_nao2 = pedir_numero("\nDeseja adicionar produto?\n1 - SIM\n2 - NÃO\n---> ", 1, 2);
     if (sim_nao2 == 2) {
         return 0;
     }
 
+    // Mostra os produtos disponíveis
     printf("\n============================ Escolha o Produto ============================\n");
     for (int d = 0; d < quantidade_de_produto; d++) {
         printf("\n%d - Produto: %s", d + 1, prod[d].nome);
@@ -48,6 +63,7 @@ float escolher_produtos(struct produto prod[], int quantidade_de_produto, struct
         printf("\n     Estoque: %d\n", prod[d].estoque);
     }
 
+    // Repete até o cliente escolher 0 (sair)
     do {
         escolher_produto = pedir_numero("\nEscolha produto (0 - SAIR): ", 0, quantidade_de_produto);
 
@@ -58,20 +74,25 @@ float escolher_produtos(struct produto prod[], int quantidade_de_produto, struct
         printf("\nDigite a quantidade que você deseja comprar: ");
         scanf("%d", &quantidade_produto);
 
+        // Não aceita quantidade menor que 1 nem maior que o estoque
         if (quantidade_produto < 1 || quantidade_produto > prod[escolher_produto - 1].estoque) {
             printf("\nQuantidade inválida ou maior que o estoque!\n");
             continue;
         }
+
+        // O carrinho tem no máximo 10 unidades
         if (quantidade_produto + compra->total_produtos > 10) {
             printf("\nLimite de 10 unidades de produtos por agendamento!\n");
             continue;
         }
 
+        // Coloca cada unidade no carrinho
         for (int a = 0; a < quantidade_produto; a++) {
             compra->produto[compra->total_produtos] = prod[escolher_produto - 1];
             compra->total_produtos++;
         }
 
+        // Soma o valor e desconta do estoque
         total_produtos += prod[escolher_produto - 1].preco * quantidade_produto;
         prod[escolher_produto - 1].estoque = prod[escolher_produto - 1].estoque - quantidade_produto;
         printf("\nProduto adicionado!\n");
@@ -80,6 +101,11 @@ float escolher_produtos(struct produto prod[], int quantidade_de_produto, struct
     return total_produtos;
 }
 
+// Faz o agendamento completo. Para cada serviço pedido:
+//   1) escolhe o serviço
+//   2) escolhe um profissional que o realiza
+//   3) escolhe dia e horário livres
+// No final, pergunta pelos produtos e mostra o resumo com o total estimado.
 void agendar_servico_para_cliente(struct servico serv[], int quantidade_de_servico, struct profissional p[], int quantida_profissional, struct produto prod[], int quantidade_de_produto) {
     printf("\n============================ AGENDAMENTO ============================\n");
     char nome_cliente[30];
@@ -115,6 +141,7 @@ void agendar_servico_para_cliente(struct servico serv[], int quantidade_de_servi
         printf("\n============================ Escolha o Serviço %d ============================\n", n + 1);
         mostrar_servicos(serv, quantidade_de_servico);
 
+        // Repete até escolher um serviço que tenha profissional (ou 0 para sair)
         do {
             escolher_servico = pedir_numero("\nDigite o número do serviço escolhido (0 para sair): ", 0, quantidade_de_servico);
             if (escolher_servico == 0) {
@@ -137,7 +164,7 @@ void agendar_servico_para_cliente(struct servico serv[], int quantidade_de_servi
             printf("\n%d - %s", k + 1, p[indice].nome_profissional);
         }
         escolher_profissional = pedir_numero("\n\nEscolha profissional: ", 1, total_profissional);
-        int m = profissionais_que_realizam_servico[escolher_profissional - 1];
+        int m = profissionais_que_realizam_servico[escolher_profissional - 1];   // posição do profissional escolhido
 
         // ----- 3) escolher dia e horário (só aceita horário livre) -----
         horarios_disponiveis(&ag);
@@ -166,6 +193,7 @@ void agendar_servico_para_cliente(struct servico serv[], int quantidade_de_servi
         total_produtos = escolher_produtos(prod, quantidade_de_produto, &compra);
         total += total_produtos;
 
+        // Resumo do agendamento
         printf("\n============================ AGENDAMENTO ============================");
 
         for (int h = 0; h < servicos_agendados; h++) {
@@ -192,5 +220,3 @@ void agendar_servico_para_cliente(struct servico serv[], int quantidade_de_servi
         printf("\nNenhum serviço foi agendado.\n");
     }
 }
-
-

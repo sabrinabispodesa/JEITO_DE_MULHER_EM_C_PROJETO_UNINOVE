@@ -1,3 +1,8 @@
+/*
+ * funcionarios.c
+ * Tudo sobre profissionais (funcionários): liberar horários, cadastrar,
+ * profissionais de exemplo, verificar ID, mostrar e buscar por serviço.
+ */
 
 #include <stdio.h>
 #include <string.h>
@@ -7,37 +12,38 @@
 #include "util.h"
 #include "structs.h"
 
-
 // ================= LIBERAR HORÁRIOS =================
+// Marca todos os horários (5 dias x 7 horários) do profissional como livres (1).
 
-void liberar_horarios(struct profissional *prof){
+void liberar_horarios(struct profissional *prof) {
 
-    for (int d = 0; d < 5; d++){
-        for (int h = 0; h < 7; h++){
+    for (int d = 0; d < 5; d++) {
+        for (int h = 0; h < 7; h++) {
             prof->disponivel[d][h] = 1;
         }
     }
 }
 
-
 // ================= CADASTRAR PROFISSIONAL =================
+// Cadastra novos profissionais depois dos que já existem e devolve o novo total.
+// Para cada um, pede: nome, ID (único), telefone, e-mail e os serviços que realiza.
 
 int cadastrar_profissional(struct servico serv[],
-                          int quantidade_de_servico,
-                          struct profissional prof[],
-                          int quantidade_de_profissionais){
+                           int quantidade_de_servico,
+                           struct profissional prof[],
+                           int quantidade_de_profissionais) {
 
     int quantidade_a_cadastrar;
     int escolha_sim_ou_nao;
     int escolha_servico;
-    int inicio = quantidade_de_profissionais;
+    int inicio = quantidade_de_profissionais;   // os novos entram depois dos que já existem
 
-    int capacidade = 20;
-    int vagas = capacidade - inicio;
+    int capacidade = 20;             // máximo de profissionais
+    int vagas = capacidade - inicio; // quantos ainda cabem
 
     printf("\n============================ CADASTRAR PROFISSIONAL ============================\n");
 
-    if (vagas <= 0){
+    if (vagas <= 0) {
         printf("\nNão há vagas disponíveis para novos profissionais!\n");
         return quantidade_de_profissionais;
     }
@@ -45,7 +51,8 @@ int cadastrar_profissional(struct servico serv[],
     printf("\nVagas disponíveis: %d\n", vagas);
     printf("\nQuantos profissionais deseja cadastrar? (1 - %d) ", vagas);
 
-    if (scanf("%d", &quantidade_a_cadastrar) != 1){
+    // Se digitar algo que não é número, limpa o teclado e cancela
+    if (scanf("%d", &quantidade_a_cadastrar) != 1) {
         printf("\nDigite um número válido!\n");
         limpar_buffer();
         return quantidade_de_profissionais;
@@ -53,28 +60,29 @@ int cadastrar_profissional(struct servico serv[],
 
     limpar_buffer();
 
-    if (quantidade_a_cadastrar < 1 || quantidade_a_cadastrar > vagas){
+    if (quantidade_a_cadastrar < 1 || quantidade_a_cadastrar > vagas) {
         printf("\nQuantidade inválida! Vagas restantes: %d\n", vagas);
         return quantidade_de_profissionais;
     }
 
-
     // ================= CADASTRAR DADOS =================
 
-    for (int i = inicio; i < inicio + quantidade_a_cadastrar; i++){
+    for (int i = inicio; i < inicio + quantidade_a_cadastrar; i++) {
 
-        prof[i].total_servico = 0;
-        liberar_horarios(&prof[i]);
+        prof[i].total_servico = 0;     // começa sem nenhum serviço
+        liberar_horarios(&prof[i]);    // todos os horários começam livres
 
         printf("\n============================ NOVO PROFISSIONAL ============================\n");
 
+        // ----- Nome -----
         printf("\nDigite o nome do(a) profissional %d: ", i + 1);
         if (fgets(prof[i].nome_profissional,
-                  sizeof(prof[i].nome_profissional), stdin) == NULL){
+                  sizeof(prof[i].nome_profissional), stdin) == NULL) {
             return i;
         }
 
-        if (strchr(prof[i].nome_profissional, '\n') == NULL){
+        // Se não encontrou o '\n', a pessoa digitou mais do que cabe: descarta o excesso
+        if (strchr(prof[i].nome_profissional, '\n') == NULL) {
             limpar_buffer();
         }
 
@@ -82,30 +90,31 @@ int cadastrar_profissional(struct servico serv[],
             strcspn(prof[i].nome_profissional, "\n")
         ] = '\0';
 
-
         // ================= CADASTRAR ID =================
+        // O ID precisa ser maior que 0 e diferente dos IDs já cadastrados.
 
         int id_repetido;
 
-        do{
+        do {
             id_repetido = 0;
 
             printf("\nDigite o ID do profissional: ");
 
-            if (scanf("%d", &prof[i].id) != 1){
+            if (scanf("%d", &prof[i].id) != 1) {
                 prof[i].id = 0;
             }
 
             limpar_buffer();
 
-            if (prof[i].id <= 0){
+            if (prof[i].id <= 0) {
                 printf("\nID inválido! Digite novamente.\n");
                 id_repetido = 1;
             }
-            else{
-                for (int j = 0; j < i; j++){
+            else {
+                // Compara com o ID dos profissionais anteriores
+                for (int j = 0; j < i; j++) {
 
-                    if (prof[i].id == prof[j].id){
+                    if (prof[i].id == prof[j].id) {
                         printf("\nEsse ID já está cadastrado!\n");
                         id_repetido = 1;
                         break;
@@ -115,17 +124,16 @@ int cadastrar_profissional(struct servico serv[],
 
         } while (id_repetido == 1);
 
-
         // ================= TELEFONE =================
 
         printf("\nNúmero de telefone: ");
 
         if (fgets(prof[i].telefone,
-                  sizeof(prof[i].telefone), stdin) == NULL){
+                  sizeof(prof[i].telefone), stdin) == NULL) {
             return i;
         }
 
-        if (strchr(prof[i].telefone, '\n') == NULL){
+        if (strchr(prof[i].telefone, '\n') == NULL) {
             limpar_buffer();
         }
 
@@ -133,17 +141,16 @@ int cadastrar_profissional(struct servico serv[],
             strcspn(prof[i].telefone, "\n")
         ] = '\0';
 
-
         // ================= E-MAIL =================
 
         printf("\nE-mail: ");
 
         if (fgets(prof[i].email,
-                  sizeof(prof[i].email), stdin) == NULL){
+                  sizeof(prof[i].email), stdin) == NULL) {
             return i;
         }
 
-        if (strchr(prof[i].email, '\n') == NULL){
+        if (strchr(prof[i].email, '\n') == NULL) {
             limpar_buffer();
         }
 
@@ -151,35 +158,35 @@ int cadastrar_profissional(struct servico serv[],
             strcspn(prof[i].email, "\n")
         ] = '\0';
 
-
         // ================= ADICIONAR SERVIÇOS =================
+        // Repete até a pessoa dizer "não" ou o profissional chegar a 15 serviços.
 
-        if (quantidade_de_servico <= 0){
+        if (quantidade_de_servico <= 0) {
             printf("\nNão há serviços disponíveis para adicionar.\n");
         }
-        else{
+        else {
 
-            do{
+            do {
 
                 printf("\nDeseja adicionar um serviço a esse profissional?");
                 printf("\n1 - SIM");
                 printf("\n2 - NÃO");
                 printf("\n---> ");
 
-                if (scanf("%d", &escolha_sim_ou_nao) != 1){
+                if (scanf("%d", &escolha_sim_ou_nao) != 1) {
                     escolha_sim_ou_nao = 0;
                 }
 
                 limpar_buffer();
 
                 if (escolha_sim_ou_nao != 1 &&
-                    escolha_sim_ou_nao != 2){
+                    escolha_sim_ou_nao != 2) {
 
                     printf("\nOpção inválida!\n");
                     continue;
                 }
 
-                if (escolha_sim_ou_nao == 1){
+                if (escolha_sim_ou_nao == 1) {
 
                     printf("\n============================ LISTA DE SERVIÇOS ============================\n");
 
@@ -187,38 +194,40 @@ int cadastrar_profissional(struct servico serv[],
 
                     printf("\nQual serviço deseja adicionar? ");
 
-                    if (scanf("%d", &escolha_servico) != 1){
+                    if (scanf("%d", &escolha_servico) != 1) {
                         escolha_servico = 0;
                     }
 
                     limpar_buffer();
 
                     if (escolha_servico < 1 ||
-                        escolha_servico > quantidade_de_servico){
+                        escolha_servico > quantidade_de_servico) {
 
                         printf("\nServiço inválido!\n");
                         continue;
                     }
 
+                    // Verifica se o profissional já tem esse serviço
                     int repetido = 0;
 
-                    for (int j = 0; j < prof[i].total_servico; j++){
+                    for (int j = 0; j < prof[i].total_servico; j++) {
 
                         if (strcmp(
-                            prof[i].servico[j].nome_servico,
-                            serv[escolha_servico - 1].nome_servico
-                        ) == 0){
+                                prof[i].servico[j].nome_servico,
+                                serv[escolha_servico - 1].nome_servico
+                            ) == 0) {
 
                             repetido = 1;
                             break;
                         }
                     }
 
-                    if (repetido == 1){
+                    if (repetido == 1) {
                         printf("\nEsse serviço já foi adicionado!\n");
                     }
-                    else{
+                    else {
 
+                        // Guarda uma cópia do serviço na lista do profissional
                         prof[i].servico[prof[i].total_servico] =
                             serv[escolha_servico - 1];
 
@@ -240,19 +249,21 @@ int cadastrar_profissional(struct servico serv[],
     return inicio + quantidade_a_cadastrar;
 }
 
-
 // ================= PROFISSIONAIS INICIAIS =================
+// Cria os 10 profissionais de exemplo (dados fictícios), cada um com ID,
+// contato e os serviços que realiza (escolhidos pela posição na lista de serviços).
+// Devolve quantos profissionais foram criados.
 
 int profissionais_cadastrados(struct profissional p[],
-                             int quantida_profissional,
-                             struct servico serv[],
-                             int quantidade_de_servico,
-                             struct agendamento *a){
+                              int quantida_profissional,
+                              struct servico serv[],
+                              int quantidade_de_servico,
+                              struct agendamento *a) {
 
-    (void)a;
+    (void)a;   // parâmetro não usado: evita aviso do compilador
 
     // A lista inicial utiliza os serviços de 0 a 11.
-    if (quantidade_de_servico < 12){
+    if (quantidade_de_servico < 12) {
         printf("\nErro: a lista inicial precisa de 12 serviços!\n");
         return 0;
     }
@@ -350,17 +361,19 @@ int profissionais_cadastrados(struct profissional p[],
         }
     };
 
+    // Quantos profissionais de exemplo existem
     int total_funcionario = sizeof(pro) / sizeof(pro[0]);
 
-    if (quantida_profissional > total_funcionario){
+    if (quantida_profissional > total_funcionario) {
         quantida_profissional = total_funcionario;
     }
 
-    if (quantida_profissional < 0){
+    if (quantida_profissional < 0) {
         return 0;
     }
 
-    for (int i = 0; i < quantida_profissional; i++){
+    // Copia para a lista principal e deixa todos os horários livres
+    for (int i = 0; i < quantida_profissional; i++) {
         p[i] = pro[i];
         liberar_horarios(&p[i]);
     }
@@ -368,16 +381,17 @@ int profissionais_cadastrados(struct profissional p[],
     return quantida_profissional;
 }
 
-
 // ================= VERIFICAR ID =================
+// Pede o ID do funcionário e devolve true se ele existir entre os profissionais.
 
-bool verificar_id(struct profissional p[], int quantida_profissional){
+bool verificar_id(struct profissional p[], int quantida_profissional) {
 
     int id;
 
     printf("\nDigite o ID do funcionário: ");
 
-    if (scanf("%d", &id) != 1){
+    // Se digitar algo que não é número, limpa o teclado e nega o acesso
+    if (scanf("%d", &id) != 1) {
         limpar_buffer();
         printf("\nID inválido!\n");
         return false;
@@ -385,9 +399,10 @@ bool verificar_id(struct profissional p[], int quantida_profissional){
 
     limpar_buffer();
 
-    for (int i = 0; i < quantida_profissional; i++){
+    // Procura o ID digitado na lista de profissionais
+    for (int i = 0; i < quantida_profissional; i++) {
 
-        if (id == p[i].id){
+        if (id == p[i].id) {
             return true;
         }
     }
@@ -396,14 +411,14 @@ bool verificar_id(struct profissional p[], int quantida_profissional){
     return false;
 }
 
-
 // ================= MOSTRAR PROFISSIONAIS =================
+// Mostra nome, ID, telefone, e-mail e os serviços de cada profissional.
 
-void mostrar_profissionais(struct profissional p[], int quantida_profissional){
+void mostrar_profissionais(struct profissional p[], int quantida_profissional) {
 
     printf("\n============================ PROFISSIONAIS CADASTRADOS ============================\n");
 
-    for (int i = 0; i < quantida_profissional; i++){
+    for (int i = 0; i < quantida_profissional; i++) {
 
         printf("\n%d - Profissional: %s", i + 1, p[i].nome_profissional);
         printf("\n     ID: %d", p[i].id);
@@ -412,44 +427,45 @@ void mostrar_profissionais(struct profissional p[], int quantida_profissional){
 
         printf("\n     Serviços:");
 
-        if (p[i].total_servico == 0){
+        if (p[i].total_servico == 0) {
             printf("\n        Nenhum serviço cadastrado.");
         }
 
-        for (int k = 0; k < p[i].total_servico; k++){
+        for (int k = 0; k < p[i].total_servico; k++) {
 
             printf("\n        %d - %s",
                    k + 1,
                    p[i].servico[k].nome_servico);
-                   
         }
 
         printf("\n\n");
     }
 }
 
-
 // ================= BUSCAR PROFISSIONAIS =================
+// Guarda em lista[] a posição de cada profissional que realiza o serviço
+// escolhido e devolve quantos encontrou.
 
 int buscar_profissionais(struct profissional p[],
-                        int quantida_profissional,
-                        struct servico serv_escolhido,
-                        int lista[]){
+                         int quantida_profissional,
+                         struct servico serv_escolhido,
+                         int lista[]) {
 
     int total = 0;
 
-    for (int k = 0; k < quantida_profissional; k++){
+    // Para cada profissional, procura o serviço na lista dele (comparando o nome)
+    for (int k = 0; k < quantida_profissional; k++) {
 
-        for (int j = 0; j < p[k].total_servico; j++){
+        for (int j = 0; j < p[k].total_servico; j++) {
 
             if (strcmp(
-                p[k].servico[j].nome_servico,
-                serv_escolhido.nome_servico
-            ) == 0){
+                    p[k].servico[j].nome_servico,
+                    serv_escolhido.nome_servico
+                ) == 0) {
 
                 lista[total] = k;
                 total++;
-                break;
+                break;   // já achou: passa para o próximo profissional
             }
         }
     }
