@@ -1,6 +1,14 @@
 /*
  * salao.c
- * Programa principal do sistema do Salão de Beleza Jeito de Mulher.
+ * 
+ * PROJETO DE EXTENSÃO EM DESENVOLVIMENTO DE SOFTWARE -- SALÃO JEITO DE MULHER --
+ * 
+ * ENZO VALDIVINO ROSSI - RA: 1726203184
+ * GIOVANNA RODRIGUES LANZONI - RA: 926200505
+ * GUILHERME DOS SANTOS PAULINO - RA: 926202269
+ * IZABELA BARBOSA LOPES - RA: 926205861
+ * SABRINA LOPES BISPO DE SÁ YOUTE - RA: 926205109
+ * VITÓRIA ALVES PEREIRA SILVA - RA: 926205897
  *
  * Aqui ficam apenas a função main e os menus. As funções de cada área
  * (produtos, serviços, profissionais, clientes e agendamento) estão
