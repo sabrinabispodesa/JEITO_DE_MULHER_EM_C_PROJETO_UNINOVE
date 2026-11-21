@@ -1,0 +1,11 @@
+Shampoo Revitalizante 300ml;45.90;10
+Condicionador Nutritivo 300ml;49.90;10
+Máscara de Hidratação 250g;75.50;10
+Creme de Pentear 200ml;38.00;5
+Mousse Modelador 150ml;55.00;8
+Óleo Reparador Argan 60ml;54.00;10
+Shampoo Pantene;30.00;10
+Condicionador Pantene;60.00;15
+Shampoo Loreal;40.00;3
+Creme de pentear Lola;60.00;6
+Creme de Pentear Arvensis;70.00;10

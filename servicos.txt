@@ -1,0 +1,12 @@
+Corte Feminino;Cortes;1h;90.00
+Corte + Escova;Cortes;1h30;130.00
+Corte Infantil;Cortes;40min;60.00
+Franja e Acabamento;Cortes;20min;35.00
+Mechas Tradicionais;Luzes;3h;280.00
+Balayage;Luzes;4h;450.00
+Morena Iluminada;Luzes;4h;520.00
+Platinado;Luzes;5h;600.00
+Coloração Global;Colorações;2h;180.00
+Retoque de Raiz;Colorações;1h30;120.00
+Tonalização;Colorações;1h;90.00
+Coloração Fantasia;Colorações;3h;250.00
